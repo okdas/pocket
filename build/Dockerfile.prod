@@ -1,0 +1,18 @@
+ARG GOLANG_IMAGE_VERSION=golang:1.18-bullseye
+
+FROM ${GOLANG_IMAGE_VERSION} AS builder
+
+COPY . $GOPATH/src/github.com/pokt-network/pocket
+WORKDIR $GOPATH/src/github.com/pokt-network/pocket
+RUN go get -d -v
+RUN go build -o /go/bin/pocket
+
+FROM debian:bullseye
+
+RUN apt-get update -qq && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends ca-certificates && \
+    rm -rf /var/lib/apt/lists/* /var/cache/apt
+
+COPY --from=builder /go/bin/pocket /usr/local/bin/pocket
+
+CMD ["/usr/local/bin/pocket"]
