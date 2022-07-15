@@ -126,6 +126,11 @@ mockgen:
 test_all: # generate_mocks
 	go test -p=1 -count=1 ./...
 
+.PHONY: test_all_with_annotations
+## Run all go unit tests, output results & coverage into files
+test_all_with_annotations: # generate_mocks
+	go test -p=1 -covermode=count -coverprofile=coverage.out -json ./... > test_results.json && go tool cover -func=coverage.out -o=coverage.out
+
 .PHONY: test_race
 ## Identify all unit tests that may result in race conditions
 test_race: # generate_mocks

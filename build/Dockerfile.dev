@@ -1,4 +1,5 @@
-# Purpose of this container image is to ship pocket binary with minimal dependencies.
+# Purpose of this container image is to ship pocket binary with additional
+# tools such as dlv, curl, etc.
 
 ARG GOLANG_IMAGE_VERSION=golang:1.18-bullseye
 
@@ -11,7 +12,7 @@ ENV PATH $PATH:$GOPATH/bin
 ### Install dependencies
 # Debian packages
 RUN apt-get update -qq && \
-    DEBIAN_FRONTEND=noninteractive apt-get install -y build-essential zip wget
+    DEBIAN_FRONTEND=noninteractive apt-get install -y build-essential zip wget ca-certificates curl
 
 # protoc
 RUN set -eux; \
@@ -40,6 +41,10 @@ RUN go install "google.golang.org/protobuf/cmd/protoc-gen-go@v${GOLANG_PROTOBUF_
 RUN go install github.com/golang/mock/mockgen@v1.6.0; \
     mockgen --version
 
+# dlv 
+RUN go install github.com/go-delve/delve/cmd/dlv@latest; \
+    dlv version
+
 ## Copy code
 COPY . $GOPATH/src/github.com/pokt-network/pocket
 WORKDIR $GOPATH/src/github.com/pokt-network/pocket
@@ -49,14 +54,6 @@ RUN make protogen_local && \
     make mockgen
 
 RUN go get -d -v ./app/pocket
-RUN go build -o /go/bin/pocket ./app/pocket
-
-FROM debian:bullseye
-
-RUN apt-get update -qq && \
-    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends ca-certificates && \
-    rm -rf /var/lib/apt/lists/* /var/cache/apt
-
-COPY --from=builder /go/bin/pocket /usr/local/bin/pocket
+RUN go build -o /usr/local/bin/pocket ./app/pocket
 
 CMD ["/usr/local/bin/pocket"]
