@@ -3,6 +3,7 @@ package modules
 //go:generate mockgen -source=$GOFILE -destination=./mocks/types_mock.go -aux_files=github.com/pokt-network/pocket/shared/modules=module.go
 
 import (
+	"github.com/pokt-network/pocket/logger"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -63,7 +64,7 @@ type TelemetryConfig interface {
 
 type LoggerConfig interface {
 	GetLevel() string
-	GetFormat() string
+	GetFormat() logger.LogFormat
 }
 
 type UtilityConfig interface {
